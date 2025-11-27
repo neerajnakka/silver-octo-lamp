@@ -2,9 +2,9 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { 
-  ArrowRight, BookOpen, Trophy, BarChart3, Search, 
-  Zap, Shield, Code, Terminal, CheckCircle, Star 
+import {
+  ArrowRight, BookOpen, Trophy, BarChart3, Search,
+  Zap, Shield, Code, Terminal, CheckCircle, Star
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -85,7 +85,7 @@ export default function HomePage() {
         {/* Background Effects */}
         <div className="absolute inset-0 bg-gradient-to-br from-amber-50 via-teal-50 to-rose-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 -z-10" />
         <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10 -z-10" />
-        
+
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-20 pb-24">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -102,7 +102,7 @@ export default function HomePage() {
             >
               <Badge variant="primary" className="px-4 py-2 text-sm">
                 <Zap className="h-4 w-4 mr-2" />
-                Master DevOps Skills Faster
+                Master DevOps Skills Faster 🚀
               </Badge>
             </motion.div>
 
@@ -116,7 +116,7 @@ export default function HomePage() {
             </h1>
 
             <p className="text-xl text-gray-600 dark:text-gray-400 mb-8 max-w-3xl mx-auto">
-              Comprehensive learning platform with 1300+ concepts, interactive quizzes, 
+              Comprehensive learning platform with 1300+ concepts, interactive quizzes,
               real-world troubleshooting scenarios, and progress tracking across 13 essential DevOps skills.
             </p>
 
