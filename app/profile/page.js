@@ -6,12 +6,18 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useStore } from '@/lib/store';
+import { useHydration } from '@/lib/use-hydration';
 import { skills } from '@/data/skills';
 
 export default function ProfilePage() {
   const { completedLessons, totalPoints, streak, achievements } = useStore();
+  const isHydrated = useHydration();
+  const safeCompletedLessons = isHydrated ? completedLessons : {};
+  const safeTotalPoints = isHydrated ? totalPoints : 0;
+  const safeStreak = isHydrated ? streak : 0;
+  const safeAchievements = isHydrated ? achievements : [];
 
-  const totalCompleted = Object.values(completedLessons).reduce((acc, val) => acc + val, 0);
+  const totalCompleted = Object.values(safeCompletedLessons).reduce((acc, val) => acc + val, 0);
   const totalLessons = skills.reduce((acc, skill) => acc + (skill.conceptsCount || 100), 0);
 
   return (
@@ -35,7 +41,7 @@ export default function ProfilePage() {
                   <p className="text-white/90 mb-3">Member since 2025</p>
                   <div className="flex gap-2">
                     <Badge className="bg-white/20 backdrop-blur-sm text-white">
-                      Level {Math.floor(totalPoints / 1000) + 1}
+                      Level {Math.floor(safeTotalPoints / 1000) + 1}
                     </Badge>
                     <Badge className="bg-white/20 backdrop-blur-sm text-white">
                       {totalCompleted} Lessons
@@ -61,10 +67,10 @@ export default function ProfilePage() {
                 <CardTitle>Statistics</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <StatItem icon={Trophy} label="Total Points" value={totalPoints} />
-                <StatItem icon={Flame} label="Current Streak" value={`${streak} days`} />
+                <StatItem icon={Trophy} label="Total Points" value={safeTotalPoints} />
+                <StatItem icon={Flame} label="Current Streak" value={`${safeStreak} days`} />
                 <StatItem icon={Target} label="Lessons Completed" value={totalCompleted} />
-                <StatItem icon={Trophy} label="Achievements" value={achievements.length} />
+                <StatItem icon={Trophy} label="Achievements" value={safeAchievements.length} />
               </CardContent>
             </Card>
 
@@ -94,7 +100,7 @@ export default function ProfilePage() {
               <CardContent>
                 <div className="space-y-4">
                   {skills.map((skill) => {
-                    const progress = completedLessons[skill.slug] || 0;
+                    const progress = safeCompletedLessons[skill.slug] || 0;
                     const total = skill.conceptsCount || 100;
                     const percentage = Math.round((progress / total) * 100);
 

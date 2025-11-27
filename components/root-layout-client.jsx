@@ -5,10 +5,13 @@ import { Header } from '@/components/features/header';
 import { Footer } from '@/components/features/footer';
 import GlobalSearch from '@/components/features/global-search';
 import { useStore } from '@/lib/store';
+import { useHydration } from '@/lib/use-hydration';
 
 export default function RootLayoutClient({ children }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const { theme } = useStore();
+  const isHydrated = useHydration();
+  const safeTheme = isHydrated ? theme : 'dark';
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -24,16 +27,16 @@ export default function RootLayoutClient({ children }) {
   useEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove('light', 'dark');
-    
-    if (theme === 'system') {
+
+    if (safeTheme === 'system') {
       const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
         ? 'dark'
         : 'light';
       root.classList.add(systemTheme);
     } else {
-      root.classList.add(theme);
+      root.classList.add(safeTheme);
     }
-  }, [theme]);
+  }, [safeTheme]);
 
   return (
     <>

@@ -5,10 +5,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X, Command, BookOpen, FileText, MessageSquare, Award, TrendingUp } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store';
+import { useHydration } from '@/lib/use-hydration';
 
 export default function GlobalSearch({ isOpen, onClose }) {
   const router = useRouter();
   const { notes, bookmarks, flashcards } = useStore();
+  const isHydrated = useHydration();
+  const safeNotes = isHydrated ? notes : {};
+  const safeBookmarks = isHydrated ? bookmarks : [];
+  const safeFlashcards = isHydrated ? flashcards : {};
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -26,7 +31,7 @@ export default function GlobalSearch({ isOpen, onClose }) {
     { type: 'skill', title: 'Grafana', description: 'Metrics visualization', path: '/skills/grafana', icon: '📈' },
     { type: 'skill', title: 'AWS', description: 'Amazon Web Services', path: '/skills/aws', icon: '☁️' },
     { type: 'skill', title: 'Azure', description: 'Microsoft Azure cloud', path: '/skills/azure', icon: '🌐' },
-    
+
     // Pages
     { type: 'page', title: 'Learning Roadmap', description: 'Structured learning paths', path: '/roadmap', icon: '🗺️' },
     { type: 'page', title: 'Flashcards', description: 'Study with flashcards', path: '/flashcards', icon: '🎴' },
@@ -37,7 +42,7 @@ export default function GlobalSearch({ isOpen, onClose }) {
     { type: 'page', title: 'Statistics', description: 'Your learning stats', path: '/stats', icon: '📈' },
     { type: 'page', title: 'Profile', description: 'Your profile settings', path: '/profile', icon: '👤' },
     { type: 'page', title: 'Settings', description: 'Customize your experience', path: '/settings', icon: '⚙️' },
-    
+
     // Commands
     { type: 'command', title: 'docker ps', description: 'List running containers', path: '/skills/docker', icon: '💻' },
     { type: 'command', title: 'kubectl get pods', description: 'List Kubernetes pods', path: '/skills/kubernetes', icon: '💻' },
@@ -48,21 +53,21 @@ export default function GlobalSearch({ isOpen, onClose }) {
   // Add dynamic content
   const allContent = [
     ...searchableContent,
-    ...Object.entries(notes).map(([key, note]) => ({
+    ...Object.entries(safeNotes).map(([key, note]) => ({
       type: 'note',
       title: note.content.substring(0, 50) + '...',
       description: `Note from ${key.split('-')[0]}`,
       path: `/notes`,
       icon: '📝'
     })),
-    ...bookmarks.map(bookmark => ({
+    ...safeBookmarks.map(bookmark => ({
       type: 'bookmark',
       title: bookmark.title,
       description: bookmark.description || 'Bookmarked content',
       path: bookmark.path || '/skills',
       icon: '🔖'
     })),
-    ...flashcards.map(card => ({
+    ...safeFlashcards.map(card => ({
       type: 'flashcard',
       title: card.question,
       description: card.category,
@@ -73,7 +78,7 @@ export default function GlobalSearch({ isOpen, onClose }) {
 
   useEffect(() => {
     if (query.trim()) {
-      const filtered = allContent.filter(item => 
+      const filtered = allContent.filter(item =>
         item.title.toLowerCase().includes(query.toLowerCase()) ||
         item.description.toLowerCase().includes(query.toLowerCase())
       ).slice(0, 8);
@@ -238,32 +243,30 @@ export default function GlobalSearch({ isOpen, onClose }) {
                   <motion.button
                     key={`${result.type}-${result.title}-${index}`}
                     onClick={() => handleSelect(result)}
-                    className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all ${
-                      index === selectedIndex
+                    className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all ${index === selectedIndex
                         ? 'bg-blue-100 dark:bg-blue-900/30'
                         : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }`}
+                      }`}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
                   >
-                    <div className={`flex items-center justify-center w-10 h-10 rounded-lg ${
-                      index === selectedIndex
+                    <div className={`flex items-center justify-center w-10 h-10 rounded-lg ${index === selectedIndex
                         ? 'bg-blue-200 dark:bg-blue-800 text-blue-700 dark:text-blue-300'
                         : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
-                    }`}>
+                      }`}>
                       {result.icon ? (
                         <span className="text-xl">{result.icon}</span>
                       ) : (
                         getTypeIcon(result.type)
                       )}
                     </div>
-                    
+
                     <div className="flex-1 text-left">
                       <div className="font-medium text-gray-900 dark:text-white">{result.title}</div>
                       <div className="text-sm text-gray-500 dark:text-gray-400">{result.description}</div>
                     </div>
-                    
+
                     {getTypeBadge(result.type)}
                   </motion.button>
                 ))}

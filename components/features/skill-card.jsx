@@ -8,12 +8,14 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
+import { useHydration } from '@/lib/use-hydration';
 
 export function SkillCard({ skill, index }) {
   const { completedLessons } = useStore();
+  const isHydrated = useHydration();
   const progress = completedLessons[skill.slug] || 0;
   const totalLessons = skill.concepts?.length || 100;
-  const progressPercentage = Math.round((progress / totalLessons) * 100);
+  const progressPercentage = Math.round(((isHydrated ? progress : 0) / totalLessons) * 100);
 
   const gradients = [
     'from-amber-400 to-orange-500',
@@ -117,8 +119,8 @@ export function SkillCard({ skill, index }) {
                   skill.difficulty === 'beginner'
                     ? 'success'
                     : skill.difficulty === 'intermediate'
-                    ? 'warning'
-                    : 'danger'
+                      ? 'warning'
+                      : 'danger'
                 }
                 size="sm"
               >

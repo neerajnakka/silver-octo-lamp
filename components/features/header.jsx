@@ -4,14 +4,15 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { 
-  Menu, X, Search, Sun, Moon, Monitor, 
+import {
+  Menu, X, Search, Sun, Moon, Monitor,
   BookOpen, Trophy, BarChart3, User, Command, MessageSquare,
   Map, Brain, FileText, TrendingUp
 } from 'lucide-react';
 import { useStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useHydration } from '@/lib/use-hydration';
 
 const navigation = [
   { name: 'Skills', href: '/skills', icon: BookOpen },
@@ -29,6 +30,8 @@ export function Header({ onSearchOpen }) {
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const { theme, setTheme } = useStore();
+  const isHydrated = useHydration();
+  const safeTheme = isHydrated ? theme : 'dark';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,12 +43,12 @@ export function Header({ onSearchOpen }) {
 
   const cycleTheme = () => {
     const themes = ['light', 'dark', 'system'];
-    const currentIndex = themes.indexOf(theme);
+    const currentIndex = themes.indexOf(safeTheme);
     const nextIndex = (currentIndex + 1) % themes.length;
     setTheme(themes[nextIndex]);
   };
 
-  const ThemeIcon = theme === 'light' ? Sun : theme === 'dark' ? Moon : Monitor;
+  const ThemeIcon = safeTheme === 'light' ? Sun : safeTheme === 'dark' ? Moon : Monitor;
 
   return (
     <header

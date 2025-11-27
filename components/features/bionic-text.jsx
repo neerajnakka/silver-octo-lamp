@@ -1,6 +1,7 @@
 'use client';
 
 import { useStore } from '@/lib/store';
+import { useHydration } from '@/lib/use-hydration';
 
 /**
  * BionicText Component - Enhances reading speed by bolding the first half of each word
@@ -9,15 +10,17 @@ import { useStore } from '@/lib/store';
  */
 export default function BionicText({ text, className = '' }) {
   const bionicReading = useStore((state) => state.bionicReading);
+  const isHydrated = useHydration();
+  const safeBionicReading = isHydrated ? bionicReading : false;
 
-  if (!bionicReading || !text) {
+  if (!safeBionicReading || !text) {
     return <span className={className}>{text}</span>;
   }
 
   const processBionicText = (text) => {
     // Split text into words while preserving spaces and punctuation
     const words = text.split(/(\s+|[.,!?;:])/);
-    
+
     return words.map((word, index) => {
       // Skip if it's whitespace or punctuation
       if (/^\s+$/.test(word) || /^[.,!?;:]$/.test(word)) {
@@ -51,8 +54,10 @@ export default function BionicText({ text, className = '' }) {
  */
 export function useBionicText(text) {
   const bionicReading = useStore((state) => state.bionicReading);
+  const isHydrated = useHydration();
+  const safeBionicReading = isHydrated ? bionicReading : false;
 
-  if (!bionicReading || !text) {
+  if (!safeBionicReading || !text) {
     return text;
   }
 

@@ -6,15 +6,20 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useStore } from '@/lib/store';
+import { useHydration } from '@/lib/use-hydration';
 import { achievements as achievementsData } from '@/data/achievements';
 
 export default function AchievementsPage() {
   const { achievements: unlockedAchievements, totalPoints, completedLessons } = useStore();
+  const isHydrated = useHydration();
+  const safeUnlockedAchievements = isHydrated ? unlockedAchievements : [];
+  const safeTotalPoints = isHydrated ? totalPoints : 0;
+  const safeCompletedLessons = isHydrated ? completedLessons : {};
 
   const enhancedAchievements = achievementsData.map((achievement) => ({
     ...achievement,
-    unlocked: unlockedAchievements.some((a) => a.id === achievement.id),
-    progress: calculateProgress(achievement, { totalPoints, completedLessons }),
+    unlocked: safeUnlockedAchievements.some((a) => a.id === achievement.id),
+    progress: calculateProgress(achievement, { totalPoints: safeTotalPoints, completedLessons: safeCompletedLessons }),
   }));
 
   const unlockedCount = enhancedAchievements.filter((a) => a.unlocked).length;
@@ -106,9 +111,8 @@ function AchievementCard({ achievement, index }) {
         <CardContent className="p-6">
           <div className="text-center mb-4">
             <div
-              className={`text-6xl mb-3 ${
-                !unlocked ? 'grayscale opacity-50' : ''
-              }`}
+              className={`text-6xl mb-3 ${!unlocked ? 'grayscale opacity-50' : ''
+                }`}
             >
               {achievement.icon}
             </div>

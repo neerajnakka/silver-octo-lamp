@@ -2,11 +2,12 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Rocket, CheckCircle2, Circle, Lock, ArrowRight, Target, 
+import {
+  Rocket, CheckCircle2, Circle, Lock, ArrowRight, Target,
   TrendingUp, Award, BookOpen, Clock, Star, Zap
 } from 'lucide-react';
 import { useStore } from '@/lib/store';
+import { useHydration } from '@/lib/use-hydration';
 import Link from 'next/link';
 
 const learningPaths = {
@@ -59,10 +60,14 @@ const learningPaths = {
 
 export default function RoadmapPage() {
   const { learningPath, setLearningPath, pathProgress, completedSkills } = useStore();
-  const [selectedPath, setSelectedPath] = useState(learningPath || 'beginner');
+  const isHydrated = useHydration();
+  const safeLearningPath = isHydrated ? learningPath : 'beginner';
+  const safePathProgress = isHydrated ? pathProgress : {};
+  const safeCompletedSkills = isHydrated ? completedSkills : [];
+  const [selectedPath, setSelectedPath] = useState(safeLearningPath);
 
   const currentPath = learningPaths[selectedPath];
-  const progress = pathProgress[selectedPath] || { completed: [], current: null };
+  const progress = safePathProgress[selectedPath] || { completed: [], current: null };
 
   const handlePathSelect = (path) => {
     setSelectedPath(path);
@@ -70,20 +75,20 @@ export default function RoadmapPage() {
   };
 
   const getSkillStatus = (skill) => {
-    if (completedSkills.includes(skill.slug)) return 'completed';
+    if (safeCompletedSkills.includes(skill.slug)) return 'completed';
     if (progress.current === skill.id) return 'current';
-    
+
     const skillIndex = currentPath.skills.findIndex(s => s.id === skill.id);
-    const completedCount = currentPath.skills.slice(0, skillIndex).filter(s => 
-      completedSkills.includes(s.slug)
+    const completedCount = currentPath.skills.slice(0, skillIndex).filter(s =>
+      safeCompletedSkills.includes(s.slug)
     ).length;
-    
+
     if (skillIndex === 0 || completedCount === skillIndex) return 'unlocked';
     return 'locked';
   };
 
   const calculateProgress = () => {
-    const completed = currentPath.skills.filter(s => completedSkills.includes(s.slug)).length;
+    const completed = currentPath.skills.filter(s => safeCompletedSkills.includes(s.slug)).length;
     return Math.round((completed / currentPath.skills.length) * 100);
   };
 
@@ -116,11 +121,10 @@ export default function RoadmapPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
               onClick={() => handlePathSelect(key)}
-              className={`p-6 rounded-2xl border-2 transition-all text-left ${
-                selectedPath === key
+              className={`p-6 rounded-2xl border-2 transition-all text-left ${selectedPath === key
                   ? 'border-blue-500 dark:border-blue-400 bg-white dark:bg-gray-800 shadow-xl scale-105'
                   : 'border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 hover:border-gray-300 dark:hover:border-gray-600'
-              }`}
+                }`}
             >
               <div className="text-4xl mb-3">{path.icon}</div>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
@@ -153,7 +157,7 @@ export default function RoadmapPage() {
                 Your Progress: {currentPath.title}
               </h2>
               <p className="text-gray-600 dark:text-gray-400">
-                {currentPath.skills.filter(s => completedSkills.includes(s.slug)).length} of {currentPath.skills.length} skills completed
+                {currentPath.skills.filter(s => safeCompletedSkills.includes(s.slug)).length} of {currentPath.skills.length} skills completed
               </p>
             </div>
             <div className="text-right">
@@ -181,7 +185,7 @@ export default function RoadmapPage() {
           <div className="space-y-6">
             {currentPath.skills.map((skill, index) => {
               const status = getSkillStatus(skill);
-              
+
               return (
                 <SkillCard
                   key={skill.id}
@@ -275,15 +279,14 @@ function SkillCard({ skill, status, index, pathColor }) {
       transition={{ delay: index * 0.1 }}
       className="relative"
     >
-      <div className={`md:ml-20 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-2 transition-all ${
-        status === 'completed'
+      <div className={`md:ml-20 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-2 transition-all ${status === 'completed'
           ? 'border-green-500 dark:border-green-400'
           : status === 'current'
-          ? 'border-blue-500 dark:border-blue-400 ring-4 ring-blue-100 dark:ring-blue-900/30'
-          : status === 'unlocked'
-          ? 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-xl cursor-pointer'
-          : 'border-gray-200 dark:border-gray-700 opacity-60'
-      }`}>
+            ? 'border-blue-500 dark:border-blue-400 ring-4 ring-blue-100 dark:ring-blue-900/30'
+            : status === 'unlocked'
+              ? 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-xl cursor-pointer'
+              : 'border-gray-200 dark:border-gray-700 opacity-60'
+        }`}>
         {/* Icon Circle */}
         <div className="absolute -left-8 top-1/2 -translate-y-1/2 hidden md:flex items-center justify-center w-16 h-16 rounded-full bg-white dark:bg-gray-800 border-4 border-gray-100 dark:border-gray-700">
           {getStatusIcon()}
@@ -297,7 +300,7 @@ function SkillCard({ skill, status, index, pathColor }) {
               </h3>
               {getStatusBadge()}
             </div>
-            
+
             <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4" />
@@ -313,17 +316,16 @@ function SkillCard({ skill, status, index, pathColor }) {
           {isInteractive && (
             <Link
               href={`/skills/${skill.slug}`}
-              className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${
-                status === 'current'
+              className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${status === 'current'
                   ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600'
-              }`}
+                }`}
             >
               {status === 'current' ? 'Continue Learning' : 'Start Learning'}
               <ArrowRight className="w-5 h-5" />
             </Link>
           )}
-          
+
           {status === 'locked' && (
             <div className="flex items-center gap-2 text-gray-500 dark:text-gray-500">
               <Lock className="w-5 h-5" />

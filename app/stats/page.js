@@ -2,14 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  TrendingUp, Award, Target, Calendar, Zap, BookOpen, 
-  CheckCircle2, Trophy, Flame, Clock, BarChart3, Activity 
+import {
+  TrendingUp, Award, Target, Calendar, Zap, BookOpen,
+  CheckCircle2, Trophy, Flame, Clock, BarChart3, Activity
 } from 'lucide-react';
 import { useStore } from '@/lib/store';
+import { useHydration } from '@/lib/use-hydration';
 
 export default function StatsPage() {
   const { completedSkills, skillProgress, achievements, bookmarks } = useStore();
+  const isHydrated = useHydration();
+  const safeCompletedSkills = isHydrated ? completedSkills : [];
+  const safeSkillProgress = isHydrated ? skillProgress : {};
+  const safeAchievements = isHydrated ? achievements : [];
+  const safeBookmarks = isHydrated ? bookmarks : [];
   const [stats, setStats] = useState({
     totalSkills: 10,
     completedSkills: 0,
@@ -34,24 +40,24 @@ export default function StatsPage() {
   ]);
 
   useEffect(() => {
-    const completed = completedSkills.length;
-    const inProgress = Object.keys(skillProgress).filter(
-      skill => skillProgress[skill] > 0 && skillProgress[skill] < 100
+    const completed = safeCompletedSkills.length;
+    const inProgress = Object.keys(safeSkillProgress).filter(
+      skill => safeSkillProgress[skill] > 0 && safeSkillProgress[skill] < 100
     ).length;
-    
+
     setStats({
       totalSkills: 10,
       completedSkills: completed,
       inProgressSkills: inProgress,
       completionRate: Math.round((completed / 10) * 100),
-      totalAchievements: achievements.length,
+      totalAchievements: safeAchievements.length,
       currentStreak: calculateStreak(),
       longestStreak: 15,
-      totalBookmarks: bookmarks.length,
+      totalBookmarks: safeBookmarks.length,
       studyTime: completed * 45 + inProgress * 20,
       lastActive: new Date().toLocaleDateString()
     });
-  }, [completedSkills, skillProgress, achievements, bookmarks]);
+  }, [safeCompletedSkills, safeSkillProgress, safeAchievements, safeBookmarks]);
 
   const calculateStreak = () => {
     // Simulate streak calculation
@@ -59,11 +65,11 @@ export default function StatsPage() {
   };
 
   const skillCategories = [
-    { name: 'Containerization', completed: completedSkills.filter(s => ['Docker', 'Kubernetes'].includes(s)).length, total: 2 },
-    { name: 'CI/CD', completed: completedSkills.filter(s => ['Jenkins', 'GitHub Actions'].includes(s)).length, total: 2 },
-    { name: 'IaC', completed: completedSkills.filter(s => ['Terraform', 'Ansible'].includes(s)).length, total: 2 },
-    { name: 'Monitoring', completed: completedSkills.filter(s => ['Prometheus', 'Grafana'].includes(s)).length, total: 2 },
-    { name: 'Cloud', completed: completedSkills.filter(s => ['AWS', 'Azure'].includes(s)).length, total: 2 }
+    { name: 'Containerization', completed: safeCompletedSkills.filter(s => ['Docker', 'Kubernetes'].includes(s)).length, total: 2 },
+    { name: 'CI/CD', completed: safeCompletedSkills.filter(s => ['Jenkins', 'GitHub Actions'].includes(s)).length, total: 2 },
+    { name: 'IaC', completed: safeCompletedSkills.filter(s => ['Terraform', 'Ansible'].includes(s)).length, total: 2 },
+    { name: 'Monitoring', completed: safeCompletedSkills.filter(s => ['Prometheus', 'Grafana'].includes(s)).length, total: 2 },
+    { name: 'Cloud', completed: safeCompletedSkills.filter(s => ['AWS', 'Azure'].includes(s)).length, total: 2 }
   ];
 
   return (
@@ -217,7 +223,7 @@ export default function StatsPage() {
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Recent Milestones</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {achievements.slice(0, 6).map((achievement, index) => (
+            {safeAchievements.slice(0, 6).map((achievement, index) => (
               <motion.div
                 key={achievement.id}
                 initial={{ opacity: 0, scale: 0.9 }}

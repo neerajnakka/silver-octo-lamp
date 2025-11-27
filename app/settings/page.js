@@ -6,12 +6,13 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useStore } from '@/lib/store';
+import { useHydration } from '@/lib/use-hydration';
 
 export default function SettingsPage() {
-  const { 
-    theme, 
-    setTheme, 
-    fontSize, 
+  const {
+    theme,
+    setTheme,
+    fontSize,
     setFontSize,
     bionicReading,
     setBionicReading,
@@ -20,6 +21,12 @@ export default function SettingsPage() {
     dyslexiaFont,
     setDyslexiaFont
   } = useStore();
+  const isHydrated = useHydration();
+  const safeTheme = isHydrated ? theme : 'system';
+  const safeFontSize = isHydrated ? fontSize : '16px';
+  const safeBionicReading = isHydrated ? bionicReading : false;
+  const safeHighContrast = isHydrated ? highContrast : false;
+  const safeDyslexiaFont = isHydrated ? dyslexiaFont : false;
 
   const themes = [
     { value: 'light', icon: Sun, label: 'Light' },
@@ -70,15 +77,14 @@ export default function SettingsPage() {
                     <button
                       key={value}
                       onClick={() => setTheme(value)}
-                      className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
-                        theme === value
+                      className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${safeTheme === value
                           ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20'
                           : 'border-gray-200 dark:border-gray-700 hover:border-amber-300 dark:hover:border-amber-600'
-                      }`}
+                        }`}
                     >
                       <Icon className="h-6 w-6" />
                       <span className="text-sm font-medium">{label}</span>
-                      {theme === value && (
+                      {safeTheme === value && (
                         <Badge variant="primary" size="sm">
                           Active
                         </Badge>
@@ -98,11 +104,10 @@ export default function SettingsPage() {
                     <button
                       key={value}
                       onClick={() => setFontSize(value)}
-                      className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
-                        fontSize === value
+                      className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${safeFontSize === value
                           ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20'
                           : 'border-gray-200 dark:border-gray-700 hover:border-amber-300 dark:hover:border-amber-600'
-                      }`}
+                        }`}
                     >
                       <span style={{ fontSize: value }} className="font-medium">A</span>
                       <span className="text-xs font-medium">{label}</span>
@@ -126,24 +131,24 @@ export default function SettingsPage() {
               <SettingToggle
                 label="Bionic Reading"
                 description="Bold the first half of words to enhance reading speed and focus"
-                checked={bionicReading}
+                checked={safeBionicReading}
                 onChange={setBionicReading}
               />
               <SettingToggle
                 label="High Contrast Mode"
                 description="Increase contrast for better visibility"
-                checked={highContrast}
+                checked={safeHighContrast}
                 onChange={setHighContrast}
               />
               <SettingToggle
                 label="Dyslexia-Friendly Font"
                 description="Use OpenDyslexic font designed for easier reading"
-                checked={dyslexiaFont}
+                checked={safeDyslexiaFont}
                 onChange={setDyslexiaFont}
               />
               <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                 <p className="text-sm text-blue-700 dark:text-blue-300">
-                  <strong>Tip:</strong> These accessibility features can be combined for the best reading experience. 
+                  <strong>Tip:</strong> These accessibility features can be combined for the best reading experience.
                   Experiment with different combinations to find what works best for you.
                 </p>
               </div>
@@ -241,7 +246,7 @@ export default function SettingsPage() {
 
 function SettingToggle({ label, description, checked, onChange, defaultChecked }) {
   const isControlled = checked !== undefined && onChange !== undefined;
-  
+
   return (
     <div className="flex items-start justify-between">
       <div>
@@ -249,12 +254,12 @@ function SettingToggle({ label, description, checked, onChange, defaultChecked }
         <div className="text-sm text-gray-600 dark:text-gray-400">{description}</div>
       </div>
       <label className="relative inline-flex items-center cursor-pointer">
-        <input 
-          type="checkbox" 
+        <input
+          type="checkbox"
           checked={isControlled ? checked : undefined}
           defaultChecked={!isControlled ? defaultChecked : undefined}
           onChange={isControlled ? (e) => onChange(e.target.checked) : undefined}
-          className="sr-only peer" 
+          className="sr-only peer"
         />
         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-300 dark:peer-focus:ring-amber-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-amber-500"></div>
       </label>

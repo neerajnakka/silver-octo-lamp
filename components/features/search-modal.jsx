@@ -9,17 +9,20 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
+import { useHydration } from '@/lib/use-hydration';
 
 export function SearchModal({ isOpen, onClose, skills }) {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const { searchHistory, addSearchHistory } = useStore();
+  const isHydrated = useHydration();
+  const safeSearchHistory = isHydrated ? searchHistory : [];
   const router = useRouter();
 
   // Create search index
   const fuse = useMemo(() => {
     const searchData = [];
-    
+
     skills.forEach((skill) => {
       // Add skill itself
       searchData.push({
@@ -78,13 +81,13 @@ export function SearchModal({ isOpen, onClose, skills }) {
   const results = useMemo(() => {
     if (!query) {
       // Show recent searches
-      return searchHistory.slice(0, 5).map((item) => ({
+      return safeSearchHistory.slice(0, 5).map((item) => ({
         item,
         isHistory: true,
       }));
     }
     return fuse.search(query).slice(0, 10);
-  }, [query, fuse, searchHistory]);
+  }, [query, fuse, safeSearchHistory]);
 
   useEffect(() => {
     setSelectedIndex(0);

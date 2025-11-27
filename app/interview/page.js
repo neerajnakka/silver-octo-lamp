@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store';
+import { useHydration } from '@/lib/use-hydration';
 import { Search, BookOpen, Clock, Star, Filter, ChevronRight, Bookmark, BookmarkCheck } from 'lucide-react';
 import Link from 'next/link';
 
@@ -13,6 +14,8 @@ export default function InterviewPrepPage() {
   const [selectedDifficulty, setSelectedDifficulty] = useState('all');
   const [selectedCompany, setSelectedCompany] = useState('all');
   const { bookmarks, addBookmark, removeBookmark } = useStore();
+  const isHydrated = useHydration();
+  const safeBookmarks = isHydrated ? bookmarks : [];
 
   // Load interview questions
   useEffect(() => {
@@ -157,12 +160,12 @@ export default function InterviewPrepPage() {
   }, [searchQuery, selectedSkill, selectedDifficulty, selectedCompany, questions]);
 
   const isBookmarked = (questionId) => {
-    return bookmarks.some((b) => b.id === questionId && b.type === 'interview-question');
+    return safeBookmarks.some((b) => b.id === questionId && b.type === 'interview-question');
   };
 
   const toggleBookmark = (question) => {
     if (isBookmarked(question.id)) {
-      const bookmark = bookmarks.find((b) => b.id === question.id && b.type === 'interview-question');
+      const bookmark = safeBookmarks.find((b) => b.id === question.id && b.type === 'interview-question');
       removeBookmark(bookmark.id);
     } else {
       addBookmark({
@@ -225,7 +228,7 @@ export default function InterviewPrepPage() {
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center">
             <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
-              {bookmarks.filter((b) => b.type === 'interview-question').length}
+              {safeBookmarks.filter((b) => b.type === 'interview-question').length}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Bookmarked</div>
           </div>

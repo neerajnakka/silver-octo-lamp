@@ -11,19 +11,26 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { useStore } from '@/lib/store';
+import { useHydration } from '@/lib/use-hydration';
 import { skills } from '@/data/skills';
 
 export default function DashboardPage() {
   const { completedLessons, quizScores, totalPoints, streak, lastActive, achievements } = useStore();
+  const isHydrated = useHydration();
+  const safeCompletedLessons = isHydrated ? completedLessons : {};
+  const safeQuizScores = isHydrated ? quizScores : {};
+  const safeTotalPoints = isHydrated ? totalPoints : 0;
+  const safeStreak = isHydrated ? streak : 0;
+  const safeAchievements = isHydrated ? achievements : [];
 
   // Calculate statistics
   const totalLessons = skills.reduce((acc, skill) => acc + (skill.conceptsCount || 100), 0);
-  const completedCount = Object.values(completedLessons).reduce((acc, val) => acc + val, 0);
+  const completedCount = Object.values(safeCompletedLessons).reduce((acc, val) => acc + val, 0);
   const overallProgress = Math.round((completedCount / totalLessons) * 100);
 
-  const quizzesTaken = Object.keys(quizScores).length;
+  const quizzesTaken = Object.keys(safeQuizScores).length;
   const avgQuizScore = quizzesTaken > 0
-    ? Math.round(Object.values(quizScores).reduce((acc, val) => acc + val, 0) / quizzesTaken)
+    ? Math.round(Object.values(safeQuizScores).reduce((acc, val) => acc + val, 0) / quizzesTaken)
     : 0;
 
   // Recent activity
@@ -65,7 +72,7 @@ export default function DashboardPage() {
           <StatCard
             icon={Flame}
             title="Current Streak"
-            value={`${streak} days`}
+            value={`${safeStreak} days`}
             subtitle="Keep it going!"
             color="text-orange-500"
             bgColor="bg-orange-100 dark:bg-orange-900/20"
@@ -73,7 +80,7 @@ export default function DashboardPage() {
           <StatCard
             icon={Trophy}
             title="Total Points"
-            value={totalPoints}
+            value={safeTotalPoints}
             subtitle="Experience points"
             color="text-teal-500"
             bgColor="bg-teal-100 dark:bg-teal-900/20"
@@ -81,7 +88,7 @@ export default function DashboardPage() {
           <StatCard
             icon={Award}
             title="Achievements"
-            value={achievements.length}
+            value={safeAchievements.length}
             subtitle="Badges earned"
             color="text-purple-500"
             bgColor="bg-purple-100 dark:bg-purple-900/20"
@@ -140,7 +147,7 @@ export default function DashboardPage() {
               <CardContent>
                 <div className="space-y-4">
                   {skills.slice(0, 6).map((skill) => {
-                    const progress = completedLessons[skill.slug] || 0;
+                    const progress = safeCompletedLessons[skill.slug] || 0;
                     const total = skill.conceptsCount || 100;
                     const percentage = Math.round((progress / total) * 100);
 
@@ -212,9 +219,9 @@ export default function DashboardPage() {
                 <CardDescription>Your latest milestones</CardDescription>
               </CardHeader>
               <CardContent>
-                {achievements.length > 0 ? (
+                {safeAchievements.length > 0 ? (
                   <div className="space-y-3">
-                    {achievements.slice(0, 3).map((achievement, index) => (
+                    {safeAchievements.slice(0, 3).map((achievement, index) => (
                       <div
                         key={index}
                         className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800"

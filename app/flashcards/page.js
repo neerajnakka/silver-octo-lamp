@@ -2,17 +2,20 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
+import {
   Brain, Plus, Trash2, Edit2, RotateCw, CheckCircle2, XCircle,
   Filter, Search, Sparkles, TrendingUp, Clock, Zap
 } from 'lucide-react';
 import { useStore } from '@/lib/store';
+import { useHydration } from '@/lib/use-hydration';
 
 const categories = ['All', 'Docker', 'Kubernetes', 'CI/CD', 'Terraform', 'Ansible', 'AWS', 'Monitoring'];
 const confidenceLevels = ['All', 'Learning', 'Reviewing', 'Mastered'];
 
 export default function FlashcardsPage() {
   const { flashcards, addFlashcard, deleteFlashcard, reviewFlashcard, updateFlashcard } = useStore();
+  const isHydrated = useHydration();
+  const safeFlashcards = isHydrated ? flashcards : [];
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedConfidence, setSelectedConfidence] = useState('All');
@@ -29,16 +32,16 @@ export default function FlashcardsPage() {
     tags: []
   });
 
-  const filteredCards = flashcards.filter(card => {
+  const filteredCards = safeFlashcards.filter(card => {
     const matchesCategory = selectedCategory === 'All' || card.category === selectedCategory;
-    const matchesConfidence = selectedConfidence === 'All' || 
+    const matchesConfidence = selectedConfidence === 'All' ||
       (selectedConfidence === 'Learning' && card.confidence < 30) ||
       (selectedConfidence === 'Reviewing' && card.confidence >= 30 && card.confidence < 70) ||
       (selectedConfidence === 'Mastered' && card.confidence >= 70);
-    const matchesSearch = searchTerm === '' || 
+    const matchesSearch = searchTerm === '' ||
       card.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
       card.answer.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     return matchesCategory && matchesConfidence && matchesSearch;
   });
 
@@ -55,7 +58,7 @@ export default function FlashcardsPage() {
     const card = filteredCards[currentCardIndex];
     reviewFlashcard(card.id, confidence);
     setIsFlipped(false);
-    
+
     // Move to next card
     if (currentCardIndex < filteredCards.length - 1) {
       setCurrentCardIndex(currentCardIndex + 1);
@@ -65,10 +68,10 @@ export default function FlashcardsPage() {
   };
 
   const statistics = {
-    total: flashcards.length,
-    learning: flashcards.filter(c => c.confidence < 30).length,
-    reviewing: flashcards.filter(c => c.confidence >= 30 && c.confidence < 70).length,
-    mastered: flashcards.filter(c => c.confidence >= 70).length
+    total: safeFlashcards.length,
+    learning: safeFlashcards.filter(c => c.confidence < 30).length,
+    reviewing: safeFlashcards.filter(c => c.confidence >= 30 && c.confidence < 70).length,
+    mastered: safeFlashcards.filter(c => c.confidence >= 70).length
   };
 
   return (
@@ -148,7 +151,7 @@ export default function FlashcardsPage() {
                     <Plus className="w-5 h-5" />
                     Create Card
                   </button>
-                  
+
                   {filteredCards.length > 0 && (
                     <button
                       onClick={() => {
@@ -311,7 +314,7 @@ function FlashcardPreview({ card, onDelete }) {
               <Trash2 className="w-4 h-4" />
             </button>
           </div>
-          
+
           <p className="text-gray-900 dark:text-white font-medium mb-2">
             {isFlipped ? 'Answer:' : 'Question:'}
           </p>
@@ -408,7 +411,7 @@ function StudyMode({ cards, currentIndex, isFlipped, onFlip, onReview, onExit })
             <span className="font-semibold">Again</span>
             <span className="text-xs">Need more practice</span>
           </button>
-          
+
           <button
             onClick={() => onReview(50)}
             className="flex flex-col items-center gap-2 p-6 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-xl hover:bg-yellow-200 dark:hover:bg-yellow-900/50 transition-colors"
@@ -417,7 +420,7 @@ function StudyMode({ cards, currentIndex, isFlipped, onFlip, onReview, onExit })
             <span className="font-semibold">Good</span>
             <span className="text-xs">Got it right</span>
           </button>
-          
+
           <button
             onClick={() => onReview(100)}
             className="flex flex-col items-center gap-2 p-6 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-xl hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"

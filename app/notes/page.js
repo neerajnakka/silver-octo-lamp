@@ -2,15 +2,18 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
+import {
   FileText, Plus, Trash2, Edit2, Search, Tag, Filter,
   BookOpen, Clock, Save, X, Hash
 } from 'lucide-react';
 import { useStore } from '@/lib/store';
+import { useHydration } from '@/lib/use-hydration';
 import Link from 'next/link';
 
 export default function NotesPage() {
   const { notes, updateNote, deleteNote } = useStore();
+  const isHydrated = useHydration();
+  const safeNotes = isHydrated ? notes : {};
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState('All');
   const [editingNote, setEditingNote] = useState(null);
@@ -19,7 +22,7 @@ export default function NotesPage() {
   const [newTag, setNewTag] = useState('');
 
   // Convert notes object to array
-  const notesArray = Object.entries(notes).map(([key, value]) => ({
+  const notesArray = Object.entries(safeNotes).map(([key, value]) => ({
     key,
     ...value,
     skillId: key.split('-')[0],
@@ -315,7 +318,7 @@ export default function NotesPage() {
                       <div className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
                         <span>
-                          {note.updatedAt 
+                          {note.updatedAt
                             ? new Date(note.updatedAt).toLocaleDateString()
                             : new Date(note.createdAt).toLocaleDateString()
                           }
@@ -331,7 +334,7 @@ export default function NotesPage() {
           <div className="text-center py-12 text-gray-500 dark:text-gray-400">
             <FileText className="w-16 h-16 mx-auto mb-4 opacity-50" />
             <p className="text-lg mb-4">
-              {searchTerm || selectedTag !== 'All' 
+              {searchTerm || selectedTag !== 'All'
                 ? 'No notes found matching your filters.'
                 : 'No notes yet. Start taking notes as you learn!'}
             </p>
