@@ -15,11 +15,14 @@ const quizData = {
   docker: dockerQuiz,
 };
 
+import { useHydration } from '@/lib/use-hydration';
+
 export default function QuizPage({ params }) {
   const { skill } = use(params);
   const quiz = quizData[skill];
   const router = useRouter();
   const { addQuizScore, addPoints } = useStore();
+  const isHydrated = useHydration();
 
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -29,7 +32,7 @@ export default function QuizPage({ params }) {
 
   useEffect(() => {
     if (!quiz) return;
-    
+
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -42,6 +45,26 @@ export default function QuizPage({ params }) {
 
     return () => clearInterval(timer);
   }, []);
+
+  if (!isHydrated) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+        <div className="mx-auto max-w-4xl px-4">
+          <div className="mb-8 animate-pulse">
+            <div className="flex items-center justify-between mb-4">
+              <div className="space-y-2">
+                <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded" />
+                <div className="h-4 w-64 bg-gray-200 dark:bg-gray-700 rounded" />
+              </div>
+              <div className="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded-full" />
+            </div>
+            <div className="h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full" />
+          </div>
+          <div className="h-64 w-full bg-white dark:bg-gray-800 rounded-xl shadow-sm animate-pulse" />
+        </div>
+      </div>
+    );
+  }
 
   if (!quiz) {
     return (
@@ -63,7 +86,7 @@ export default function QuizPage({ params }) {
   const handleNext = () => {
     setAnswers([...answers, selectedAnswer]);
     setSelectedAnswer(null);
-    
+
     if (currentQuestion < quiz.questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     } else {
@@ -83,13 +106,13 @@ export default function QuizPage({ params }) {
     const finalAnswers = selectedAnswer !== null ? [...answers, selectedAnswer] : answers;
     const score = calculateScore(finalAnswers);
     const percentage = Math.round((score / quiz.questions.length) * 100);
-    
+
     // Add quiz score (this now also calls updateStreak and checkAchievements internally)
     addQuizScore(skill, percentage);
-    
+
     // Add points for correct answers
     addPoints(score * 10);
-    
+
     setShowResults(true);
   };
 
@@ -120,9 +143,8 @@ export default function QuizPage({ params }) {
           >
             <Card className="text-center">
               <CardContent className="p-12">
-                <div className={`w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center ${
-                  passed ? 'bg-green-100 dark:bg-green-900/20' : 'bg-rose-100 dark:bg-rose-900/20'
-                }`}>
+                <div className={`w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center ${passed ? 'bg-green-100 dark:bg-green-900/20' : 'bg-rose-100 dark:bg-rose-900/20'
+                  }`}>
                   {passed ? (
                     <Trophy className="h-12 w-12 text-green-600 dark:text-green-400" />
                   ) : (
@@ -208,13 +230,12 @@ export default function QuizPage({ params }) {
                         {q.options.map((option, optIndex) => (
                           <div
                             key={optIndex}
-                            className={`p-3 rounded-lg border-2 ${
-                              optIndex === q.correctAnswer
-                                ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                                : optIndex === userAnswer
+                            className={`p-3 rounded-lg border-2 ${optIndex === q.correctAnswer
+                              ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                              : optIndex === userAnswer
                                 ? 'border-rose-500 bg-rose-50 dark:bg-rose-900/20'
                                 : 'border-gray-200 dark:border-gray-700'
-                            }`}
+                              }`}
                           >
                             {option}
                           </div>
@@ -288,18 +309,16 @@ export default function QuizPage({ params }) {
                     <button
                       key={index}
                       onClick={() => handleAnswer(index)}
-                      className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
-                        selectedAnswer === index
-                          ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20'
-                          : 'border-gray-200 dark:border-gray-700 hover:border-amber-300 dark:hover:border-amber-600'
-                      }`}
+                      className={`w-full text-left p-4 rounded-lg border-2 transition-all ${selectedAnswer === index
+                        ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-amber-300 dark:hover:border-amber-600'
+                        }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                          selectedAnswer === index
-                            ? 'border-amber-500 bg-amber-500'
-                            : 'border-gray-300 dark:border-gray-600'
-                        }`}>
+                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${selectedAnswer === index
+                          ? 'border-amber-500 bg-amber-500'
+                          : 'border-gray-300 dark:border-gray-600'
+                          }`}>
                           {selectedAnswer === index && (
                             <CheckCircle className="h-4 w-4 text-white" />
                           )}
