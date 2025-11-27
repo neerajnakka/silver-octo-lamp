@@ -13,7 +13,7 @@ export default function GlobalSearch({ isOpen, onClose }) {
   const isHydrated = useHydration();
   const safeNotes = isHydrated ? notes : {};
   const safeBookmarks = isHydrated ? bookmarks : [];
-  const safeFlashcards = isHydrated ? flashcards : {};
+  const safeFlashcards = isHydrated ? flashcards : [];
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -244,16 +244,16 @@ export default function GlobalSearch({ isOpen, onClose }) {
                     key={`${result.type}-${result.title}-${index}`}
                     onClick={() => handleSelect(result)}
                     className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all ${index === selectedIndex
-                        ? 'bg-blue-100 dark:bg-blue-900/30'
-                        : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                      ? 'bg-blue-100 dark:bg-blue-900/30'
+                      : 'hover:bg-gray-100 dark:hover:bg-gray-700'
                       }`}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
                   >
                     <div className={`flex items-center justify-center w-10 h-10 rounded-lg ${index === selectedIndex
-                        ? 'bg-blue-200 dark:bg-blue-800 text-blue-700 dark:text-blue-300'
-                        : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                      ? 'bg-blue-200 dark:bg-blue-800 text-blue-700 dark:text-blue-300'
+                      : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
                       }`}>
                       {result.icon ? (
                         <span className="text-xl">{result.icon}</span>
