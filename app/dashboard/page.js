@@ -15,7 +15,12 @@ import { useHydration } from '@/lib/use-hydration';
 import { skills } from '@/data/skills';
 
 export default function DashboardPage() {
-  const { completedLessons, quizScores, totalPoints, streak, lastActive, achievements } = useStore();
+  const completedLessons = useStore(state => state.completedLessons);
+  const quizScores = useStore(state => state.quizScores);
+  const totalPoints = useStore(state => state.totalPoints);
+  const streak = useStore(state => state.streak);
+  const lastActive = useStore(state => state.lastActive);
+  const achievements = useStore(state => state.achievements);
   const isHydrated = useHydration();
   const safeCompletedLessons = isHydrated ? completedLessons : {};
   const safeQuizScores = isHydrated ? quizScores : {};

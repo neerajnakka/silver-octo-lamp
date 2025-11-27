@@ -10,26 +10,31 @@ import { useStore } from '@/lib/store';
 import { useHydration } from '@/lib/use-hydration';
 
 export default function StatsPage() {
-  const { completedSkills, skillProgress, achievements, bookmarks } = useStore();
+  const completedSkills = useStore(state => state.completedSkills);
+  const skillProgress = useStore(state => state.skillProgress);
+  const achievements = useStore(state => state.achievements);
+  const bookmarks = useStore(state => state.bookmarks);
+  const streak = useStore(state => state.streak);
+
   const isHydrated = useHydration();
   const safeCompletedSkills = isHydrated ? completedSkills : [];
   const safeSkillProgress = isHydrated ? skillProgress : {};
   const safeAchievements = isHydrated ? achievements : [];
   const safeBookmarks = isHydrated ? bookmarks : [];
-  const [stats, setStats] = useState({
-    totalSkills: 10,
-    completedSkills: 0,
-    inProgressSkills: 0,
-    completionRate: 0,
-    totalAchievements: 0,
-    currentStreak: 0,
-    longestStreak: 0,
-    totalBookmarks: 0,
-    studyTime: 0,
-    lastActive: null
-  });
+  const safeStreak = isHydrated ? streak : 0;
 
-  const [weeklyActivity, setWeeklyActivity] = useState([
+  // Calculate statistics directly
+  const totalSkills = 10;
+  const completedCount = safeCompletedSkills.length;
+  const inProgressCount = Object.keys(safeSkillProgress).filter(
+    skill => safeSkillProgress[skill] > 0 && safeSkillProgress[skill] < 100
+  ).length;
+  const completionRate = Math.round((completedCount / totalSkills) * 100);
+  const totalAchievements = safeAchievements.length;
+  const studyTime = completedCount * 45 + inProgressCount * 20;
+
+  // Weekly activity simulation (static for now, could be moved to store later)
+  const weeklyActivity = [
     { day: 'Mon', completions: 3 },
     { day: 'Tue', completions: 5 },
     { day: 'Wed', completions: 2 },
@@ -37,32 +42,21 @@ export default function StatsPage() {
     { day: 'Fri', completions: 4 },
     { day: 'Sat', completions: 6 },
     { day: 'Sun', completions: 7 }
-  ]);
+  ];
 
-  useEffect(() => {
-    const completed = safeCompletedSkills.length;
-    const inProgress = Object.keys(safeSkillProgress).filter(
-      skill => safeSkillProgress[skill] > 0 && safeSkillProgress[skill] < 100
-    ).length;
-
-    setStats({
-      totalSkills: 10,
-      completedSkills: completed,
-      inProgressSkills: inProgress,
-      completionRate: Math.round((completed / 10) * 100),
-      totalAchievements: safeAchievements.length,
-      currentStreak: calculateStreak(),
-      longestStreak: 15,
-      totalBookmarks: safeBookmarks.length,
-      studyTime: completed * 45 + inProgress * 20,
-      lastActive: new Date().toLocaleDateString()
-    });
-  }, [safeCompletedSkills, safeSkillProgress, safeAchievements, safeBookmarks]);
-
-  const calculateStreak = () => {
-    // Simulate streak calculation
-    return Math.floor(Math.random() * 10) + 1;
+  const stats = {
+    totalSkills,
+    completedSkills: completedCount,
+    inProgressSkills: inProgressCount,
+    completionRate,
+    totalAchievements,
+    currentStreak: safeStreak,
+    longestStreak: 15, // Placeholder, should ideally come from store
+    totalBookmarks: safeBookmarks.length,
+    studyTime,
+    lastActive: new Date().toLocaleDateString()
   };
+
 
   const skillCategories = [
     { name: 'Containerization', completed: safeCompletedSkills.filter(s => ['Docker', 'Kubernetes'].includes(s)).length, total: 2 },

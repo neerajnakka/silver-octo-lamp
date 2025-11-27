@@ -10,7 +10,9 @@ import { useHydration } from '@/lib/use-hydration';
 import { achievements as achievementsData } from '@/data/achievements';
 
 export default function AchievementsPage() {
-  const { achievements: unlockedAchievements, totalPoints, completedLessons } = useStore();
+  const unlockedAchievements = useStore(state => state.achievements);
+  const totalPoints = useStore(state => state.totalPoints);
+  const completedLessons = useStore(state => state.completedLessons);
   const isHydrated = useHydration();
   const safeUnlockedAchievements = isHydrated ? unlockedAchievements : [];
   const safeTotalPoints = isHydrated ? totalPoints : 0;
